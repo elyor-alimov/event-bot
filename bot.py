@@ -120,6 +120,16 @@ async def volunteer_check(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=keyboard
     )
 
+async def test_reminder(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = await get_user(update.effective_user.id)
+    if not user or not user["is_admin"]:
+        await update.message.reply_text("⛔ Нет доступа.")
+        return
+    await update.message.reply_text("🔄 Проверяю напоминания...")
+    from reminders import check_and_send_reminders
+    await check_and_send_reminders(context.bot)
+    await update.message.reply_text("✅ Готово!")
+
 async def handle_confirmation(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -216,6 +226,7 @@ def main():
     app.add_handler(CommandHandler("admin", admin_panel))
     app.add_handler(CommandHandler("sync", manual_sync))
     app.add_handler(CommandHandler("qrscan", volunteer_check))
+    app.add_handler(CommandHandler("testreminder", test_reminder))
 
     # Потом callback кнопки
     app.add_handler(CallbackQueryHandler(handle_language_choice, pattern="^lang_"))
