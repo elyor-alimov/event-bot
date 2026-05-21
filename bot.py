@@ -8,6 +8,7 @@ from telegram.ext import (
     Application, CommandHandler, MessageHandler,
     CallbackQueryHandler, filters, ContextTypes
 )
+from telegram import InlineKeyboardMarkup, InlineKeyboardButton, WebAppInfo
 from languages import t
 from keyboards import language_keyboard, main_menu_keyboard
 from admin import admin_panel, admin_callback, create_event_conv
@@ -107,8 +108,15 @@ async def manual_sync(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def volunteer_check(update: Update, context: ContextTypes.DEFAULT_TYPE):
     scanner_url = "https://elyor-alimov.github.io/event-scanner/?token=volunteer2025"
+    keyboard = InlineKeyboardMarkup([[
+        InlineKeyboardButton(
+            "📷 Открыть сканер",
+            web_app=WebAppInfo(url=scanner_url)
+        )
+    ]])
     await update.message.reply_text(
-        f"🔍 Ссылка для сканирования:\n{scanner_url}"
+        "Нажми кнопку чтобы открыть сканер:",
+        reply_markup=keyboard
     )
 
 async def post_init(application):
