@@ -161,6 +161,16 @@ async def handle_confirmation(update: Update, context: ContextTypes.DEFAULT_TYPE
 
     await query.edit_message_text(msg)
 
+async def test_reminder(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = await get_user(update.effective_user.id)
+    if not user or not user["is_admin"]:
+        await update.message.reply_text("⛔ Нет доступа.")
+        return
+    await update.message.reply_text("🔄 Проверяю напоминания...")
+    from reminders import check_and_send_reminders
+    await check_and_send_reminders(context.bot)
+    await update.message.reply_text("✅ Готово!")
+
 async def post_init(application):
     await init_db()
     print("База данных готова ✅")
