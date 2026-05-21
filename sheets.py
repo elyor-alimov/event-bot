@@ -1,6 +1,7 @@
 import gspread
 from google.oauth2.service_account import Credentials
 import os
+import base64
 import json
 
 SCOPES = [
@@ -8,10 +9,15 @@ SCOPES = [
     "https://www.googleapis.com/auth/drive"
 ]
 
-SPREADSHEET_ID = "1gqtPemSKugRL4Esu02GTImznm_fBaekUwK_i1SHNrUg"
+SPREADSHEET_ID = os.getenv('SPREADSHEET_ID', '1gqtPemSKugRL4Esu02GTImznm_fBaekUwK_i1SHNrUg')
 
 def get_client():
-    creds = Credentials.from_service_account_file("credentials.json", scopes=SCOPES)
+    creds_b64 = os.getenv('GOOGLE_CREDENTIALS_BASE64')
+    if creds_b64:
+        creds_dict = json.loads(base64.b64decode(creds_b64).decode('utf-8'))
+        creds = Credentials.from_service_account_info(creds_dict, scopes=SCOPES)
+    else:
+        creds = Credentials.from_service_account_file("credentials.json", scopes=SCOPES)
     return gspread.authorize(creds)
 
 def get_spreadsheet():
