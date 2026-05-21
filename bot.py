@@ -18,6 +18,7 @@ from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from aiohttp import web
 from api import create_app
 import asyncio
+from reminders import check_and_send_reminders
 
 logging.basicConfig(level=logging.INFO)
 load_dotenv()
@@ -119,6 +120,37 @@ async def volunteer_check(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=keyboard
     )
 
+async def handle_confirmation(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+
+    data = query.data
+    user_id = query.from_user.id
+    db_user = await get_user(user_id)
+    lang = db_user.get('language', 'ru') if db_user else 'ru'
+
+    if data.startswith('confirm_yes_'):
+        event_id = int(data.replace('confirm_yes_', ''))
+        async with aiosqlite.connect('data/bot.db') as db:
+            await db.execute("""
+                UPDATE registrations SET confirmed=1
+                WHERE event_id=? AND user_id=(SELECT id FROM users WHERE telegram_id=?)
+            """, (event_id, user_id))
+            await db.commit()
+        msg = "✅ Отлично, ждём тебя!" if lang == 'ru' else "✅ Zo'r, sizni kutamiz!"
+
+    elif data.startswith('confirm_no_'):
+        event_id = int(data.replace('confirm_no_', ''))
+        async with aiosqlite.connect('data/bot.db') as db:
+            await db.execute("""
+                UPDATE registrations SET confirmed=0, status='declined'
+                WHERE event_id=? AND user_id=(SELECT id FROM users WHERE telegram_id=?)
+            """, (event_id, user_id))
+            await db.commit()
+        msg = "Жаль, в следующий раз! 👋" if lang == 'ru' else "Keyingi safar! 👋"
+
+    await query.edit_message_text(msg)
+
 async def post_init(application):
     await init_db()
     print("База данных готова ✅")
@@ -128,6 +160,13 @@ async def post_init(application):
     scheduler.add_job(sync_events, "interval", minutes=5)
     scheduler.start()
     print("Автосинхронизация запущена ✅")
+
+    scheduler.add_job(
+    check_and_send_reminders,
+    "interval",
+    minutes=30,
+    args=[application.bot]
+)
 
     try:
         api_app = create_app()
@@ -181,6 +220,7 @@ def main():
     # Потом callback кнопки
     app.add_handler(CallbackQueryHandler(handle_language_choice, pattern="^lang_"))
     app.add_handler(CallbackQueryHandler(admin_callback, pattern="^admin_"))
+    app.add_handler(CallbackQueryHandler(handle_confirmation, pattern="^confirm_"))
 
     # В самом конце - общий обработчик текста
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_menu))

@@ -44,7 +44,7 @@ async def sync_events():
                     UPDATE events SET
                         title_ru = ?, title_uz = ?,
                         description_ru = ?, description_uz = ?,
-                        event_date = ?, event_type = ?,
+                        event_date = ?, event_time = ?, event_type = ?,
                         location_ru = ?, location_uz = ?,
                         photo_url = ?,
                         is_active = ?, registration_open = ?
@@ -55,6 +55,7 @@ async def sync_events():
                     row.get("Описание RU", ""),
                     row.get("Описание UZ", ""),
                     row.get("Дата", ""),
+                    row.get("Время", "00:00"),
                     event_type,
                     row.get("Адрес RU", ""),
                     row.get("Адрес UZ", ""),
@@ -67,9 +68,9 @@ async def sync_events():
                 await db.execute("""
                     INSERT INTO events
                     (sheet_id, title_ru, title_uz, description_ru, description_uz,
-                     event_date, event_type, location_ru, location_uz,
+                     event_date, event_time, event_type, location_ru, location_uz,
                      photo_url, is_active, registration_open)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, (
                     sheet_id,
                     row.get("Название RU", ""),
@@ -77,6 +78,7 @@ async def sync_events():
                     row.get("Описание RU", ""),
                     row.get("Описание UZ", ""),
                     row.get("Дата", ""),
+                    row.get("Время", "00:00"),
                     event_type,
                     row.get("Адрес RU", ""),
                     row.get("Адрес UZ", ""),

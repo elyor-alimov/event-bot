@@ -197,10 +197,12 @@ async def finish_registration(update: Update, context: ContextTypes.DEFAULT_TYPE
     ticket_path = None
     unique_code = None
     if event["event_type"] == "offline":
+        event_time = event.get("event_time", "")
+        event_date_full = f"{event['event_date']} в {event_time}" if event_time and event_time != "00:00" else event['event_date']
         ticket_path, unique_code = generate_ticket(
             registration_id=reg_id,
             event_title=event["title_ru"],
-            event_date=event["event_date"],
+            event_date=event_date_full,
             event_location=event.get("location_ru", ""),
             participant_name=context.user_data["full_name"],
             event_type="offline"
