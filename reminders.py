@@ -59,7 +59,9 @@ async def send_reminder(bot, event_id, row_index, row, events_map):
         )
         send_time = event_dt - timedelta(hours=int(hours_before))
         now = datetime.now()
+        print(f"DEBUG: событие={event_dt}, отправить в={send_time}, сейчас={now}")
         if not (send_time <= now <= send_time + timedelta(minutes=30)):
+            print(f"DEBUG: время не подошло")
             return
     except Exception as e:
         print(f"Ошибка времени: {e}")
