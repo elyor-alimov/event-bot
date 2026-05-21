@@ -136,6 +136,21 @@ async def run_blasts(bot):
             status = str(row.get('Статус', '')).upper().strip()
             if status != 'ГОТОВО':
                 continue
+
+            # Проверяем время отправки если указано
+            send_at = str(row.get('Когда отправить', '')).strip()
+            if send_at:
+                try:
+                    from pytz import timezone
+                    TZ = timezone('Asia/Tashkent')
+                    send_dt = datetime.strptime(send_at, '%d.%m.%Y %H:%M')
+                    send_dt = TZ.localize(send_dt)
+                    now = datetime.now(TZ)
+                    if now < send_dt:
+                        print(f"Рассылка запланирована на {send_at} — ещё не время")
+                        continue
+                except Exception as e:
+                    print(f"Ошибка парсинга времени рассылки: {e}")
             sent = await send_blast(bot, i, row, events_map)
             total += sent
 

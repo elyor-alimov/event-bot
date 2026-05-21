@@ -196,6 +196,7 @@ async def post_init(application):
     "interval",
     minutes=30,
     args=[application.bot]
+
 )
 
     try:
