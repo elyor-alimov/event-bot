@@ -1,0 +1,8 @@
+venv/
+data/bot.db
+data/qr_codes/
+assets/
+credentials.json
+.env
+__pycache__/
+*.pyc
