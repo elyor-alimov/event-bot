@@ -3,6 +3,10 @@ from datetime import datetime, timedelta
 from sheets import ensure_sheet
 from database import DB_PATH
 import aiosqlite
+from datetime import timezone
+import pytz
+
+TZ = pytz.timezone('Asia/Tashkent')
 
 async def get_registrations_for_event(event_id):
     """Возвращает telegram_id всех зарегистрированных на мероприятие"""
@@ -64,8 +68,9 @@ async def send_reminder(bot, event_id, row_index, row, events_map):
             f"{event['event_date']} {event_time}",
             '%d.%m.%Y %H:%M'
         )
+        event_dt = TZ.localize(event_dt)
         send_time = event_dt - timedelta(hours=int(hours_before))
-        now = datetime.now()
+        now = datetime.now(TZ)
         print(f"DEBUG: событие={event_dt}, отправить в={send_time}, сейчас={now}")
         if not (send_time <= now <= send_time + timedelta(minutes=30)):
             print(f"DEBUG: время не подошло")
