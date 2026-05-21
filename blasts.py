@@ -78,16 +78,34 @@ async def send_blast(bot, row_index, row, events_map):
         try:
             if media_url and media_type:
                 file_url = convert_drive_link(media_url)
-                if media_type in ['фото', 'photo', 'image']:
-                    await bot.send_photo(chat_id=user['telegram_id'], photo=file_url, caption=text)
-                elif media_type in ['видео', 'video']:
-                    await bot.send_video(chat_id=user['telegram_id'], video=file_url, caption=text)
-                elif media_type in ['pdf', 'документ', 'document']:
-                    await bot.send_document(chat_id=user['telegram_id'], document=file_url, caption=text)
+                import aiohttp
+                from io import BytesIO
+
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(file_url) as resp:
+                        file_bytes = await resp.read()
+                buf = BytesIO(file_bytes)
+
+                if media_type in ['фото', 'photo', 'image', 'png', 'jpg']:
+                    buf.name = 'photo.jpg'
+                    await bot.send_photo(chat_id=user['telegram_id'], photo=buf, caption=text)
+                elif media_type in ['видео', 'video', 'mp4']:
+                    buf.name = 'video.mp4'
+                    await bot.send_video(chat_id=user['telegram_id'], video=buf, caption=text)
+                elif media_type in ['гиф', 'gif']:
+                    buf.name = 'anim.gif'
+                    await bot.send_animation(chat_id=user['telegram_id'], animation=buf, caption=text)
+                elif media_type in ['аудио', 'audio', 'mp3']:
+                    buf.name = 'audio.mp3'
+                    await bot.send_audio(chat_id=user['telegram_id'], audio=buf, caption=text)
+                elif media_type in ['голосовое', 'voice', 'ogg']:
+                    buf.name = 'voice.ogg'
+                    await bot.send_voice(chat_id=user['telegram_id'], voice=buf, caption=text)
+                elif media_type in ['pdf', 'документ', 'document', 'doc']:
+                    buf.name = 'document.pdf'
+                    await bot.send_document(chat_id=user['telegram_id'], document=buf, caption=text)
                 else:
                     await bot.send_message(chat_id=user['telegram_id'], text=text)
-            else:
-                await bot.send_message(chat_id=user['telegram_id'], text=text)
             sent += 1
             await asyncio.sleep(0.05)
         except Exception as e:
