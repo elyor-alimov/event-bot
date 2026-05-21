@@ -105,6 +105,12 @@ async def manual_sync(update: Update, context: ContextTypes.DEFAULT_TYPE):
     count = await sync_events()
     await update.message.reply_text(f"✅ Синхронизировано мероприятий: {count}")
 
+async def volunteer_check(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    scanner_url = "https://elyor-alimov.github.io/event-scanner/?token=volunteer2025"
+    await update.message.reply_text(
+        f"🔍 Ссылка для сканирования:\n{scanner_url}"
+    )
+
 async def post_init(application):
     await init_db()
     print("База данных готова ✅")
@@ -162,6 +168,7 @@ def main():
     app.add_handler(CommandHandler("myid", myid))
     app.add_handler(CommandHandler("admin", admin_panel))
     app.add_handler(CommandHandler("sync", manual_sync))
+    app.add_handler(CommandHandler("qrscan", volunteer_check))
 
     # Потом callback кнопки
     app.add_handler(CallbackQueryHandler(handle_language_choice, pattern="^lang_"))
