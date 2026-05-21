@@ -48,7 +48,8 @@ async def send_reminder(bot, event_id, row_index, row, events_map):
     media_type = row.get('Тип файла', '').lower().strip()
     only_confirmed = str(row.get('Только подтвердившим', '')).upper() == 'ДА'
 
-    if not sheet_event_id or not hours_before or not text_ru:
+    if not sheet_event_id or hours_before == '' or not text_ru:
+        print(f"DEBUG: недостаточно данных для напоминания")
         return
 
     # Находим мероприятие
