@@ -19,6 +19,7 @@ from aiohttp import web
 from api import create_app
 import asyncio
 from reminders import check_and_send_reminders
+from blasts import run_blasts
 
 logging.basicConfig(level=logging.INFO)
 load_dotenv()
@@ -130,6 +131,15 @@ async def test_reminder(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await check_and_send_reminders(context.bot)
     await update.message.reply_text("✅ Готово!")
 
+async def blast(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = await get_user(update.effective_user.id)
+    if not user or not user["is_admin"]:
+        await update.message.reply_text("⛔ Нет доступа.")
+        return
+    await update.message.reply_text("📨 Запускаю рассылку...")
+    total = await run_blasts(context.bot)
+    await update.message.reply_text(f"✅ Рассылка завершена — отправлено {total} сообщений")
+
 async def handle_confirmation(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -237,6 +247,7 @@ def main():
     app.add_handler(CommandHandler("sync", manual_sync))
     app.add_handler(CommandHandler("qrscan", volunteer_check))
     app.add_handler(CommandHandler("testreminder", test_reminder))
+    app.add_handler(CommandHandler("blast", blast))
 
     # Потом callback кнопки
     app.add_handler(CallbackQueryHandler(handle_language_choice, pattern="^lang_"))
