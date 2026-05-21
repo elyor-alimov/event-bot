@@ -35,6 +35,12 @@ async def send_reminder(bot, event_id, row_index, row, events_map):
     import re
 
     sheet_event_id = str(row.get('ID мероприятия', '')).strip()
+    print(f"DEBUG send_reminder: sheet_event_id='{sheet_event_id}', events_map keys={list(events_map.keys())}")
+    event = events_map.get(sheet_event_id)
+    print(f"DEBUG: event найден: {event is not None}")
+    if not event:
+        print(f"DEBUG: мероприятие не найдено для ID '{sheet_event_id}'")
+        return
     hours_before = row.get('За сколько часов', '')
     text_ru = row.get('Текст RU', '')
     text_uz = row.get('Текст UZ', '')
