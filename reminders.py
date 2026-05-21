@@ -107,20 +107,22 @@ async def send_reminder(bot, event_id, row_index, row, events_map):
         print(f"Напоминание отправлено {sent} участникам")
 
 async def check_and_send_reminders(bot):
-    """Проверяет и отправляет напоминания — запускается каждые 30 минут"""
     try:
         ws = ensure_sheet('Напоминания')
         rows = ws.get_all_records()
+        print(f"DEBUG: найдено напоминаний в таблице: {len(rows)}")
 
-        # Загружаем мероприятия
         async with aiosqlite.connect(DB_PATH) as db:
             db.row_factory = aiosqlite.Row
             async with db.execute("SELECT * FROM events WHERE is_active=1") as cursor:
                 events_list = await cursor.fetchall()
                 events_map = {str(e['sheet_id']): dict(e) for e in events_list if e['sheet_id']}
+        print(f"DEBUG: мероприятий в БД: {len(events_map)}, ключи: {list(events_map.keys())}")
 
         for i, row in enumerate(rows):
+            print(f"DEBUG: строка {i}: {row}")
             if str(row.get('Отправлено', '')).startswith('ОТПРАВЛЕНО'):
+                print(f"DEBUG: строка {i} уже отправлена, пропускаем")
                 continue
             await send_reminder(bot, i, i, row, events_map)
 
